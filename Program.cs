@@ -6,18 +6,29 @@ using System.Threading.Tasks;
 
 namespace HearthStats
 {
+    static class Manager
+    {
+        public static bool isRunning = true;
+    }
+
     class Program
     {
         static void Main(string[] args)
         {
-            bool isRunning = true;
+            // current input
             String val;
+
+            // make random class
             Random random = new Random();
 
+            // initate objects
             BankRobber bankRobber = new BankRobber();
             Cop cop = new Cop();
+            
+            //give starting message
+            Console.WriteLine("Simulation is starting...");
 
-            while (isRunning == true)
+            while (Manager.isRunning == true)
             {
                 // get input and convert to string
                 val = Convert.ToString(Console.ReadLine());
@@ -25,33 +36,42 @@ namespace HearthStats
                 // check if program needs to be stopped
                 if (val == "stop")
                 {
-                    isRunning = false;
+                    Manager.isRunning = false;
                 }
                 else
                 {
                     // update states based of vars and echo feedback
                     bankRobber.updateStates();
-                    cop.updateStates();
+                    cop.updateStates(bankRobber);
+
+                    // dev output
+                    //Console.WriteLine(bankRobber.strength + " " + bankRobber.wealth + " " + bankRobber.distanceToCop + " " + cop.dutyTime);
                 }
             }
+            // wait till button press to exit
+            Console.WriteLine("");
+            Console.WriteLine("Simulation Ended, Press a key to exit...");
+            Console.ReadLine();
         }
     }
 
     public class BankRobber
     {
-        public float distanceToCop = 0;
+        public float distanceToCop = 50;
         public float strength = 0;
         public float wealth = 0;
+
         private Random random = new Random();
 
-        private State cState;
+         public State cState;
 
         public enum State
         {
             HAVING_GOOD_TIME = 0,
             ROBBING_BANK = 1,
             LAYING_LOW = 2,
-            FLEEING = 3
+            FLEEING = 3,
+            CAUGHT = 4
         };
 
         public BankRobber()
@@ -61,6 +81,9 @@ namespace HearthStats
 
         public void updateStates()
         {
+            // say current state
+            sayFeedBack(cState);
+
             switch (cState)
             {
                 case State.LAYING_LOW:
@@ -69,6 +92,10 @@ namespace HearthStats
                     // feel safe
                     if (strength > 20)
                         cState = State.ROBBING_BANK;
+
+                    // spot cop
+                    if (distanceToCop < 10)
+                        cState = State.FLEEING;
                     break;
 
                 case State.ROBBING_BANK:
@@ -89,7 +116,7 @@ namespace HearthStats
                     break;
 
                 case State.HAVING_GOOD_TIME:
-                    wealth -= 5;
+                    wealth -= 75;
                     strength -= 3;
                     distanceToCop -= 2;
 
@@ -106,13 +133,18 @@ namespace HearthStats
                     break;
 
                 case State.FLEEING:
-                    wealth -= 5;
+                    wealth -= 100;
                     distanceToCop += 30;
                     strength -= 5;
 
                     // feel safe
-                    if (distanceToCop > 50 && strength > 10)
+                    if (distanceToCop > 10 && strength > 10 && wealth < 100)
                         cState = State.ROBBING_BANK;
+
+                    // feel safe en rich
+                    if (distanceToCop > 10 && strength > 10 && wealth > 100)
+                        cState = State.HAVING_GOOD_TIME;
+
                     // get tired
                     if (strength < 10)
                         cState = State.LAYING_LOW;
@@ -121,12 +153,9 @@ namespace HearthStats
                     // do nothing
                     break;
             }
-
-            // say current state
-            sayFeedBack(cState);
         }
 
-        private void sayFeedBack(State currentState)
+        public void sayFeedBack(State currentState)
         {
             String feedback = "Bank Robber: ";
 
@@ -144,6 +173,9 @@ namespace HearthStats
                 case State.FLEEING:
                     feedback += "I see a cop, so I have to start running";
                     break;
+                case State.CAUGHT:
+                    feedback += "I'm Caught and im losing my freedom :C!";
+                    break;
                 default:
                     feedback += "Broken";
                     break;
@@ -155,13 +187,15 @@ namespace HearthStats
 
     public class Cop
     {
-        private State cState;
+        public State cState;
+        public float dutyTime = 0;
 
         public enum State
         {
             OFF_DUTY = 0,
             ON_STAKE_OUT = 1,
-            CHASING = 2
+            CHASING = 2,
+            CAUGHT = 3
         };
 
         public Cop()
@@ -169,15 +203,59 @@ namespace HearthStats
             cState = State.ON_STAKE_OUT;
         }
 
-        public void updateStates()
+        public void updateStates(BankRobber robber)
         {
-            // update vars
-
             // say current state
             sayFeedBack(cState);
+
+            switch (cState)
+            {
+                // update vars
+                case State.ON_STAKE_OUT:
+                    dutyTime -= 1;
+
+                    if (robber.distanceToCop > 10 && dutyTime < 1)
+                        cState = State.OFF_DUTY;
+
+                    if (robber.distanceToCop < 10 && dutyTime > 0)
+                        cState = State.CHASING;
+
+                    break;
+
+                case State.OFF_DUTY:
+                    dutyTime = 10;
+                    robber.distanceToCop = 50;
+
+                    if (dutyTime > 5)
+                        cState = State.ON_STAKE_OUT;
+                    break;
+
+                case State.CHASING:
+                    dutyTime -= 1;
+                    robber.distanceToCop -= 4;
+
+                    if (robber.distanceToCop < 2) 
+                        // make line and say feedback
+                        Console.WriteLine(" ");
+                        Console.WriteLine(" ");
+                        cState = State.CAUGHT;
+                        sayFeedBack(cState);
+                        robber.cState = BankRobber.State.CAUGHT;
+                        robber.sayFeedBack(robber.cState);
+                        // stop simulation
+                        Manager.isRunning = false;
+
+                    if (robber.distanceToCop > 10 && dutyTime > 0)
+                        cState = State.ON_STAKE_OUT;
+                    break;
+
+                default:
+                    // do nothing
+                    break;
+            }
         }
 
-        private void sayFeedBack(State currentState)
+        public void sayFeedBack(State currentState)
         {
             String feedback = "Cop: ";
 
@@ -191,6 +269,9 @@ namespace HearthStats
                     break;
                 case State.CHASING:
                     feedback += "I'm running behind a suspect";
+                    break;
+                case State.CAUGHT:
+                    feedback += "I caught the robber and the city is finally safe!";
                     break;
                 default:
                     feedback += "Broken";
