@@ -42,7 +42,7 @@ namespace HearthStats
         public float distanceToCop = 0;
         public float strength = 0;
         public float wealth = 0;
-        public bool isTired = false;
+        private Random random = new Random();
 
         private State cState;
 
@@ -64,10 +64,10 @@ namespace HearthStats
             switch (cState)
             {
                 case State.LAYING_LOW:
-                    strength += 10;
+                    strength += 15;
 
                     // feel safe
-                    if (strength > 5)
+                    if (strength > 20)
                         cState = State.ROBBING_BANK;
                     break;
 
@@ -75,6 +75,10 @@ namespace HearthStats
                     wealth += 100;
                     distanceToCop -= 5;
                     strength -= 5;
+
+                    // randomchance
+                    if (random.Next(0, 100) < 25)
+                        distanceToCop = 0;
 
                     // get rich
                     if (strength > 5 && wealth > 20)
@@ -89,15 +93,20 @@ namespace HearthStats
                     strength -= 3;
                     distanceToCop -= 2;
 
+                    // randomchance
+                    if (random.Next(0, 100) < 15)
+                        distanceToCop = 0;
+
                     // spot cop
                     if (distanceToCop < 10)
-                        cState = State.FLEEING;
+                    cState = State.FLEEING;
                     // get tired
                     if (strength < 5)
                         cState = State.LAYING_LOW;
                     break;
 
                 case State.FLEEING:
+                    wealth -= 5;
                     distanceToCop += 30;
                     strength -= 5;
 
