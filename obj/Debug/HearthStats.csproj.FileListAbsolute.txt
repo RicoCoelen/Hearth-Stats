@@ -1,0 +1,6 @@
+C:\Users\callr\Desktop\HearthStats\HearthStats\bin\Debug\HearthStats.exe.config
+C:\Users\callr\Desktop\HearthStats\HearthStats\bin\Debug\HearthStats.exe
+C:\Users\callr\Desktop\HearthStats\HearthStats\bin\Debug\HearthStats.pdb
+C:\Users\callr\Desktop\HearthStats\HearthStats\obj\Debug\HearthStats.csprojAssemblyReference.cache
+C:\Users\callr\Desktop\HearthStats\HearthStats\obj\Debug\HearthStats.exe
+C:\Users\callr\Desktop\HearthStats\HearthStats\obj\Debug\HearthStats.pdb
