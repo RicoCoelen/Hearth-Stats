@@ -108,7 +108,7 @@ namespace HearthStats
                         distanceToCop = 0;
 
                     // get rich
-                    if (strength > 5 && wealth > 20)
+                    if (wealth > 200)
                         cState = State.HAVING_GOOD_TIME;
                     // spot cop
                     if (distanceToCop < 20)
@@ -223,7 +223,7 @@ namespace HearthStats
                     break;
 
                 case State.OFF_DUTY:
-                    dutyTime = 10;
+                    dutyTime = dutyTime + 2;
                     robber.distanceToCop = 50;
 
                     if (dutyTime > 5)
